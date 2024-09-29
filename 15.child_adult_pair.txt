@@ -1,0 +1,42 @@
+DAY 15: child_adult_pair
+
+create table family 
+(
+person varchar(5),
+type varchar(10),
+age int
+);
+delete from family ;
+insert into family values ('A1','Adult',54),
+('A2','Adult',53),('A3','Adult',52),('A4','Adult',58),('A5','Adult',54),
+('C1','Child',20),('C2','Child',19),('C3','Child',22),('C4','Child',15);
+
+select * from family;
+
+--Adult,Child pair (and no child can go alone)
+-- with cte_adult as
+-- (select *,row_number() over (order by person) as rn
+-- from family
+-- where type='Adult'),
+-- cte_child as
+-- (select *,row_number() over (order by person) as rn
+-- from family
+-- where type='Child')
+
+-- select ca.person,cc.person
+-- from cte_adult ca
+-- left join cte_child cc on ca.rn=cc.rn 
+
+--QN tweak: eldest adult should go with youngest child----
+-- with cte_adult as
+-- (select *,row_number() over (order by age desc) as rn
+-- from family
+-- where type='Adult'),
+-- cte_child as
+-- (select *,row_number() over (order by age asc) as rn
+-- from family
+-- where type='Child')
+
+-- select ca.person,cc.person,ca.age as adult_age,cc.age as child_age
+-- from cte_adult ca
+-- left join cte_child cc on ca.rn=cc.rn
