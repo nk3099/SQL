@@ -1,0 +1,44 @@
+Day 19b: new_customer_count (every month)
+
+
+CREATE TABLE sales 
+(
+    order_date date,
+    customer VARCHAR(5),
+    qty INT
+);
+
+INSERT INTO sales (order_date, customer, qty) VALUES ('2021-01-01', 'C1', '20');
+INSERT INTO sales (order_date, customer, qty) VALUES ('2021-01-01', 'C2', '30');
+INSERT INTO sales (order_date, customer, qty) VALUES ('2021-02-01', 'C1', '10');
+INSERT INTO sales (order_date, customer, qty) VALUES ('2021-02-01', 'C3', '15');
+INSERT INTO sales (order_date, customer, qty) VALUES ('2021-03-01', 'C5', '19');
+INSERT INTO sales (order_date, customer, qty) VALUES ('2021-03-01', 'C4', '10');
+INSERT INTO sales (order_date, customer, qty) VALUES ('2021-04-01', 'C3', '13');
+INSERT INTO sales (order_date, customer, qty) VALUES ('2021-04-01', 'C5', '15');
+INSERT INTO sales (order_date, customer, qty) VALUES ('2021-04-01', 'C6', '10');
+
+
+-- to find the count of new customer added in each month (from sales table)
+select * from sales;
+
+--concept: first visit of any customer
+with visited as
+(select order_date,customer,
+row_number() over(partition by customer order by order_date) as first_visit
+from sales) 
+
+select order_date,count(distinct customer) as new_customer_count
+from visited
+where first_visit=1
+group by order_date
+
+
+--taking distinct, here as if same customer suppose C1 coming twice in a month -- then we shouldn't count it as 2 times
+select order_date,count(distinct customer) as new_customer_count
+from
+(select order_date,customer,
+row_number() over(partition by customer order by order_date) as first_visit
+from sales) A 
+where first_visit=1
+group by order_date
