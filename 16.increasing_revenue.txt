@@ -1,0 +1,46 @@
+DAY 16: increasing_revenue
+
+create table company_revenue 
+(
+company varchar(100),
+year int,
+revenue int
+)
+
+insert into company_revenue values 
+('ABC1',2000,100),('ABC1',2001,110),
+('ABC1',2002,120),('ABC2',2000,100),('ABC2',2001,90),('ABC2',2002,120),
+('ABC3',2000,500),('ABC3',2001,400),('ABC3',2002,600),('ABC3',2003,800);
+
+-- with cte as (select *,
+-- lag(revenue,1,0) over (partition by company order by year) as prev_rev,
+-- revenue-lag(revenue,1,0) over (partition by company order by year) as rev_diff,
+-- count(1) over (partition by company) as total_years
+-- from company_revenue)
+
+-- --how many years of data for each comapny = how many years it is increasing
+
+-- select company --,total_years,count(1) as sales_increased_years
+-- from cte
+-- where rev_diff > 0
+-- group by company,total_years
+-- having total_years=count(1)
+
+
+--OR--
+--where revenue_diff for all years should be >0(positive) and cannot be negative
+with cte as (select *,
+revenue-lag(revenue,1,0) over (partition by company order by year) as rev_diff
+from company_revenue)
+
+--how many years of data for each comapny = how many years it is increasing
+
+select distinct(company) --,total_years,count(1) as sales_increased_years
+from cte
+where company NOT IN (select company from cte where rev_diff < 0)
+--&--
+select company --,total_years,count(1) as sales_increased_years
+from cte
+where company NOT IN (select company from cte where rev_diff < 0)
+group by company
+
