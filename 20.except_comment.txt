@@ -1,0 +1,82 @@
+Day 20:  minus/except_comments_from_2_tables (src,target)
+
+
+create table source(id int, name varchar(5))
+
+create table target(id int, name varchar(5))
+
+insert into source values(1,'A'),(2,'B'),(3,'C'),(4,'D')
+
+insert into target values(1,'A'),(2,'B'),(4,'X'),(5,'F');
+
+select * from source;
+select * from target;
+
+with A as
+(select * from source
+except
+select * from target
+),
+B as 
+(select * from target
+except 
+select * from source
+),
+temp as 
+(select *, 'New in Source' as comment from A 
+union all 
+select *, 'New in Target' as comment from B),
+temp2 as (select id, count(id) as cnt
+from temp
+group by id)
+
+select temp.id,
+max(case 
+when temp2.cnt>1 then "Mismatched"
+else comment
+end) as comment
+from temp
+join temp2 on temp.id=temp2.id
+group by temp.id
+
+
+-- -- --OR--
+-- -- --Using Full Outer join
+
+select coalesce(s.id,t.id) as id, --ie. if s.id is NULL then will take values from t.id value
+-- case 
+-- when s.id is NOT NULL then s.id
+-- when t.id is NOT NULL then t.id
+-- end as id,
+case 
+when s.name is NULL then "New in Target"
+when t.name is NULL then "New in Source"
+when s.name<>t.name then "Mismatched"
+end as comment
+from source s
+full outer join target t ON s.id=t.id
+where s.name<>t.name or s.name is NULL or t.name is NULL
+
+
+-- --OR--
+
+with cte as 
+(select *, 'Source' as table_name from source 
+union all 
+select *, 'Target' as table_name from target)
+
+select id--,count(id) as cnt, min(name) as min_name, max(name) as max_name, min(table_name) as min_table_name, max(table_name)as max_table_name
+,case
+when min(name)!=max(name) then "Mismatched"
+when min(name)='Source' then "New in Source"
+else "New in Target"
+end as comment
+-- ,case 
+-- when count(id)=1 and min(table_name)='Source' then "New in Source"
+-- when count(id)=1 and min(table_name)="Target" then "New in Target"
+-- else
+-- "Mismatched"
+-- end as comment
+from cte
+group by id
+having count(id)=1 or (count(id)=2 and min(name)!=max(name))
