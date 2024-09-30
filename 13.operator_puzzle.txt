@@ -1,0 +1,27 @@
+Day 13: Operator Puzzle
+
+create table input (
+id int,
+formula varchar(10),
+value int
+)
+insert into input values (1,'1+4',10),(2,'2+1',5),(3,'3-2',40),(4,'4-1',20);
+select * from input;
+
+with cte as (select id,
+formula,
+left(formula,1) as d1,
+right(formula,1) as d2,
+substring(formula,2,1) as op,
+value
+from input)
+
+select 
+cte.id,cte.value,cte.formula,cte.op,i2.value,i3.value,
+case 
+ when cte.op='+' then i2.value+i3.value
+ else i2.value-i3.value
+end as new_result
+from cte 
+join input i2 on cte.d1=i2.id
+join input i3 on cte.d2=i3.id
