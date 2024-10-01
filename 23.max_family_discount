@@ -1,0 +1,68 @@
+Day 23:  max_family_discount
+
+—query to print maximum number of discounted tours any 1 family in the FAMILIES table can choose from.
+
+CREATE TABLE FAMILIES (
+    ID VARCHAR(40),
+    NAME VARCHAR(20),
+    FAMILY_SIZE INT
+);
+
+-- Insert data into FAMILIES table
+INSERT INTO FAMILIES (ID, NAME, FAMILY_SIZE)
+VALUES 
+    ('c00dac11bde74750b4d207b9c182a85f', 'Alex Thomas', 9),
+    ('eb6f2d3426694667ae3e79d6274114a4', 'Chris Gray', 2),
+  ('3f7b5b8e835d4e1c8b3e12e964a741f3', 'Emily Johnson', 4),
+    ('9a345b079d9f4d3cafb2d4c11d20f8ce', 'Michael Brown', 6),
+    ('e0a5f57516024de2a231d09de2cbe9d1', 'Jessica Wilson', 3);
+
+-- Create COUNTRIES table
+CREATE TABLE COUNTRIES (
+    ID VARCHAR(40),
+    NAME VARCHAR(20),
+    MIN_SIZE INT,
+ MAX_SIZE INT
+);
+
+INSERT INTO COUNTRIES (ID, NAME, MIN_SIZE,MAX_SIZE)
+VALUES 
+    ('023fd23615bd4ff4b2ae0a13ed7efec9', 'Bolivia', 2 , 4),
+    ('be247f73de0f4b2d810367cb26941fb9', 'Cook Islands', 4,8),
+    ('3e85ab80a6f84ef3b9068b21dbcc54b3', 'Brazil', 4,7),
+    ('e571e164152c4f7c8413e2734f67b146', 'Australia', 5,9),
+    ('f35a7bb7d44342f7a8a42a53115294a8', 'Canada', 3,5),
+    ('a1b5a4b5fc5f46f891d9040566a78f27', 'Japan', 10,12);
+
+select * from families;
+select * from countries;
+
+select TOP 1 f.name,count(f.name) as max_discounts
+from families f, countries c
+where FAMILY_SIZE>=MIN_SIZE
+group by f.Name
+order by max_discounts desc
+
+
+--OR--
+--the family with max FAMILY_SIZE would have maximum max_discounts
+
+select count(*) from countries where MIN_SIZE < (select max(FAMILY_SIZE) from families)
+
+
+-- --Find when the FAMILY_SIZE should be between MIN_SIZE and MAX_SIZE to avail discounts
+select TOP 1 f.name,count(f.name) as max_discounts
+from families f, countries c
+where FAMILY_SIZE BETWEEN MIN_SIZE AND MAX_SIZE
+group by f.Name
+order by max_discounts desc
+
+-- --OR- 
+-- --though there is no common column to join 2 tables, but we can do on the range
+
+select TOP 1 f.name,count(f.name) as max_discounts
+from families f
+join countries c on f.FAMILY_SIZE BETWEEN MIN_SIZE and MAX_SIZE
+group by f.name
+order by max_discounts desc
+
