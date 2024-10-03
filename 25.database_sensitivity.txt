@@ -1,0 +1,55 @@
+Day 25:  **database_sensitivity
+
+-- Database Case Sensitivity vs Insensitivity
+--by default, many databases are Case Insensitive
+
+CREATE TABLE employees  (employee_id int,employee_name varchar(15), email_id varchar(15) );
+delete from employees;
+INSERT INTO employees (employee_id,employee_name, email_id) VALUES ('101','Liam Alton', 'li.al@abc.com');
+INSERT INTO employees (employee_id,employee_name, email_id) VALUES ('102','Josh Day', 'jo.da@abc.com');
+INSERT INTO employees (employee_id,employee_name, email_id) VALUES ('103','Sean Mann', 'se.ma@abc.com'); 
+INSERT INTO employees (employee_id,employee_name, email_id) VALUES ('104','Evan Blake', 'ev.bl@abc.com');
+INSERT INTO employees (employee_id,employee_name, email_id) VALUES ('105','Toby Scott', 'jo.da@abc.com');
+INSERT INTO employees (employee_id,employee_name, email_id) VALUES ('106','Anjali Chouhan', 'JO.DA@ABC.COM');
+INSERT INTO employees (employee_id,employee_name, email_id) VALUES ('107','Ankit Bansal', 'AN.BA@ABC.COM');
+
+select * from employees
+
+select *, lower(email_id) as low
+from employees
+where email_id=lower(email_id) 
+-- as case insesitive, thereby treats JO.DA@ABC.COM  &  jo.da@abc.com as equal
+
+--thereby to remove duplicate email which was in capital letters
+--using ASCII concept: A-65, a-97 
+select * from
+(select *, ASCII(email_id)  as ascii_value,
+rank() over (partition by email_id order by ASCII(email_id) desc) as rnk
+from employees) A 
+where rnk=1
+
+/*
+email_id        ascii_value.  rnk
+jo.da@abc.com -    107   -     1
+jo.da@abc.com -    107   -     1 
+JO.DA@ABC.COM -    74    -     3
+*/
+
+--to make CASE SENSITIVE now:
+ALTER TABLE employees
+ALTER COLUMN email_id VARCHAR(15) COLLATE SQL_Latin1_General_CP1_CS_AS; --here CS is case_sensitive
+
+select *, lower(email_id) as low
+from employees
+where email_id=lower(email_id) 
+--gives results excluding JO.DA@ABC.COM & AN.BA@ABC.COM -- as they are case senisitive now.
+
+select * from
+(select *, ASCII(email_id)  as ascii_value,
+rank() over (partition by lower(email_id) order by ASCII(email_id) desc) as rnk
+from employees) A 
+where rnk=1
+--therefore made partition by lower(email_id) for getting without duplicate emails
+
+
+
