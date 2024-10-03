@@ -1,0 +1,64 @@
+Day 24:  **two_way_trip.txt
+
+
+
+CREATE TABLE tickets (
+    airline_number VARCHAR(10),
+    origin VARCHAR(3),
+    destination VARCHAR(3),
+    oneway_round CHAR(1),
+    ticket_count INT
+);
+
+
+INSERT INTO tickets (airline_number, origin, destination, oneway_round, ticket_count)
+VALUES
+    ('DEF456', 'BOM', 'DEL', 'O', 150),
+    ('GHI789', 'DEL', 'BOM', 'R', 50),
+    ('JKL012', 'BOM', 'DEL', 'R', 75),
+    ('MNO345', 'DEL', 'NYC', 'O', 200),
+    ('PQR678', 'NYC', 'DEL', 'O', 180),
+    ('STU901', 'NYC', 'DEL', 'R', 60),
+    ('ABC123', 'DEL', 'BOM', 'O', 100),
+    ('VWX234', 'DEL', 'NYC', 'R', 90);
+    
+    
+select * from tickets;
+
+-- find busiest route along with total ticket count
+--case1: if all are OneWayTrip ('O'):
+
+-- select origin, destination,sum(ticket_count) as cnt 
+-- from tickets
+-- group by origin, destination
+
+--case2: if there are OneWayTrip ('O') and RoundTrip ('R'):
+--note: if BOM->DEL then round trip would be DEL->BOM (and not BOM->DEL itself, so 2*ticket_count is wrong)
+--ie, for Round trip (origin,destination) would become (destination,origin) and we then calculate ticket_count again for roundtrip
+
+
+with correct_cte as
+(select 1 as referen,origin, destination,oneway_round,ticket_count
+from tickets
+union all
+select 2 as reference,destination,origin,oneway_round,ticket_count
+from tickets
+where oneway_round='R')
+
+select top 1 origin,destination,sum(ticket_count) as tc
+from correct_cte 
+group by origin,destination
+order by tc desc
+
+
+
+--PLEASE NOTE: THIS IS WRONG (as explained above)
+-- with routes as(
+-- select origin,destination,
+-- case when oneway_round='O' then ticket_count else 2*ticket_count end as total_count
+-- from tickets)
+-- select origin,destination, sum(total_count) as cnt
+-- from routes
+-- group by origin,destination
+
+
