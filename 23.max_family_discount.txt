@@ -1,4 +1,4 @@
-Day 23:  max_family_discount
+Day 23: max_family_discount
 
 —query to print maximum number of discounted tours any 1 family in the FAMILIES table can choose from.
 
