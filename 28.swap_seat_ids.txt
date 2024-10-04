@@ -1,0 +1,61 @@
+Day 28:  swap_seat_ids
+
+solution to swap the seat_id of every 2 consecutive students. If no. of students is odd, the id of the last student is not swapped
+
+
+CREATE TABLE seats (
+    id INT,
+    student VARCHAR(10)
+);
+
+INSERT INTO seats VALUES 
+(1, 'Amit'),
+(2, 'Deepa'),
+(3, 'Rohit'),
+(4, 'Anjali'),
+(5, 'Neha'),
+(6, 'Sanjay'),
+(7, 'Priya');
+
+select * from seats
+
+--if consecutive ids:
+select  id, student,
+case 
+when id=(select max(id) from seats) and id%2=1 then id
+when id%2=0 then id-1 
+else id+1 
+end as new_id
+from seats
+
+--if not consecutive ids: 
+--example: 1,7,9,8 => output: 7,1,9,8
+-- we can use row_number() over order_by_id 
+-- and use inplace of 'id' in above case clause
+
+
+select  id, student,
+case 
+when id=(select max(id) from seats) and id%2=1 then id -- this can be removed also
+when id%2=0 then lag(id,1) over (order by id) --means will give previous id
+else lead(id,1,id) over (order by id) -- will give next id
+end as new_id
+from seats
+
+--as lead(id,1,id), the 3rd argument means if next value not there, ie. NULL then can specify the value (which is same id here)
+
+
+--OR--
+update seats
+set seats.id= new_seats.new_id
+from
+(select  id, student,
+case 
+when id=(select max(id) from seats) and id%2=1 then id
+when id%2=0 then id-1 
+else id+1 
+end as new_id
+from seats
+) new_seats
+where seats.id=new_seats.id
+
