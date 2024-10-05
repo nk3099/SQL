@@ -1,0 +1,52 @@
+Day 26: City Population
+
+CREATE TABLE city_population (
+    state VARCHAR(50),
+    city VARCHAR(50),
+    population INT
+);
+
+-- Insert the data
+INSERT INTO city_population (state, city, population) VALUES ('haryana', 'ambala', 100);
+INSERT INTO city_population (state, city, population) VALUES ('haryana', 'panipat', 200);
+INSERT INTO city_population (state, city, population) VALUES ('haryana', 'gurgaon', 300);
+INSERT INTO city_population (state, city, population) VALUES ('punjab', 'amritsar', 150);
+INSERT INTO city_population (state, city, population) VALUES ('punjab', 'ludhiana', 400);
+INSERT INTO city_population (state, city, population) VALUES ('punjab', 'jalandhar', 250);
+INSERT INTO city_population (state, city, population) VALUES ('maharashtra', 'mumbai', 1000);
+INSERT INTO city_population (state, city, population) VALUES ('maharashtra', 'pune', 600);
+INSERT INTO city_population (state, city, population) VALUES ('maharashtra', 'nagpur', 300);
+INSERT INTO city_population (state, city, population) VALUES ('karnataka', 'bangalore', 900);
+INSERT INTO city_population (state, city, population) VALUES ('karnataka', 'mysore', 400);
+INSERT INTO city_population (state, city, population) VALUES ('karnataka', 'mangalore', 200);
+
+
+select * from city_population;
+
+
+with cte as (
+select state,city,population,
+row_number() over (partition by state order by population desc) as rnk_desc,
+row_number() over (partition by state order by population asc) as rnk_asc
+from city_population
+)
+
+select state,max(population)as max_population, min(population) as min_population,
+max(case when rnk_desc=1 then city end) as highest_populated,
+min(case when rnk_asc=1 then city end) as lowest_populated
+from cte 
+group by state
+order by state
+
+--OR--
+
+select state,
+max(case when population=max_population then city end) as highest_populated,
+max(case when population=min_population then city end) as lowest_populated
+from
+(select *,
+MAX(population) over (partition by state) as max_population,
+MIN(population) over (partition by state) as min_population
+from city_population) A
+group by state
+
