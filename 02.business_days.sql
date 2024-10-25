@@ -1,3 +1,5 @@
+Day2: Business Days
+
 create table tickets
 (
 ticket_id varchar(10),
