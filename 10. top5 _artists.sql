@@ -1,3 +1,4 @@
+--Day 10: Top 5 artists
 
 with cte as (SELECT 
   artists.artist_name,
