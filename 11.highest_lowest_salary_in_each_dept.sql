@@ -1,3 +1,5 @@
+Day11: highest_lowest_salary_in_each_dept
+  
 create table employee 
 (
 emp_name varchar(10),
