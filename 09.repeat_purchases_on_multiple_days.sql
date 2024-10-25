@@ -1,6 +1,6 @@
-Day 9: Repeat purchases on multiple days
+--Day 9: Data Lemur: Repeat purchases on multiple days
 
-—Distinct purchases dates on same product and user
+--Distinct purchases dates on same product and user
 
 CREATE TABLE purchases (
   user_id INT,
