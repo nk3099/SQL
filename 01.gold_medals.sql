@@ -1,3 +1,5 @@
+Day1: Gold Medals
+  
 CREATE TABLE events (
 ID int,
 event varchar(255),
