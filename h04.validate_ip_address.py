@@ -20,5 +20,4 @@ print(isvalid_ip('255.23.12.23')) #True
 print(isvalid_ip('255.23.12.278')) #False
 print(isvalid_ip('255.23.12.-2'))  #False
 print(isvalid_ip('255.23.12.2.12')) #False
-
-print(isvalid_ip('255.23.12.a'))
+print(isvalid_ip('255.23.12.a')) #False
