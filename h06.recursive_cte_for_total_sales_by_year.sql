@@ -1,4 +1,4 @@
---Day12: recursive_cte_for_total_sales_by_year
+--Day06: recursive_cte_for_total_sales_by_year
 
 --recursive cte_numbers
 
