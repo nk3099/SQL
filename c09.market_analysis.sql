@@ -1,4 +1,4 @@
-Day9: **trips_and_users
+Day9: **market_analysis
 
 /*Query to find for each seller, whether the brand of the second item (by date) 
 they sold is their favourite brand. If a seller sold less than two items, 
