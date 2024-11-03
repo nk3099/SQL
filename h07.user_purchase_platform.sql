@@ -41,7 +41,7 @@ having count(distinct user_id)=count(user_id))
 order by spend_date, total_users desc;
 
 --------------
--- OR --
+-- OR ---
 ---------------
 
 --users spend on:
