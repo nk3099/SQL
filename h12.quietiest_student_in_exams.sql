@@ -24,3 +24,18 @@ insert into exams values
 select * from students;
 
 select * from exams;
+
+with cte as 
+(
+select exam_id, min(score) as min_marks, max(score) as max_marks
+from exams
+group by exam_id
+)
+
+select e.student_id
+--,max(case when e.score=min_marks or e.score=max_marks then 1 else 0 end) as red_flag
+from exams e
+join cte c
+on e.exam_id=c.exam_id
+group by e.student_id
+having max(case when e.score=min_marks or e.score=max_marks then 1 else 0 end)=0
