@@ -40,3 +40,20 @@ from calls c
 inner join phonelog p1 on p1.callerid=c.callerid and c.firstcall=p1.datecalled
 inner join phonelog p2 on p2.callerid=c.callerid and c.lastcall=p2.datecalled
 where p1.Recipientid=p2.Recipientid
+
+
+------------
+--OR--
+------------
+
+-- with cte AS (SELECT Callerid, Recipientid, CAST(Datecalled AS DATE) as Datecalled
+-- FROM phonelog),
+-- cte2 AS (SELECT *,
+-- FIRST_VALUE(Recipientid) OVER(PARTITION BY Datecalled ORDER BY Datecalled) as first_value,
+-- LAST_VALUE(Recipientid) OVER(PARTITION BY Datecalled ORDER BY Datecalled) as last_value
+-- FROM cte)
+
+-- SELECT Callerid, Datecalled, MAX(first_value) AS Recipientid FROM cte2
+-- WHERE first_value = last_value
+-- GROUP BY Callerid, Datecalled;
+
