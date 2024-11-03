@@ -1,59 +1,89 @@
---Day 13: there is a phonelog table that has information about callers' call history. 
---write a SQL to find out callers whose first and last call was to the same person on a given day.
+--Day14: A company wants to hire new employees. The budget of the company for the salaries is $70000. 
+--The company's criteria for hiring are: 
+--keep hiring the senior with the smallest salary until you cannot hire any more seniors. 
+--Use the remaining budget to hire the junior with the smallest salary. 
+--keep hiring the junior with the smallest salary until you cannot hire any more juniors. 
+--Write an SQL query to find the seniors and juniors hired under the mentioned criteria.
 
-create table phonelog(
-    Callerid int, 
-    Recipientid int,
-    Datecalled datetime
+
+create table candidates (
+emp_id int,
+experience varchar(20),
+salary int
 );
+delete from candidates;
+insert into candidates values
+(1,'Junior',10000),(2,'Junior',15000),(3,'Junior',40000),(4,'Senior',16000),(5,'Senior',20000),(6,'Senior',50000);
 
-insert into phonelog(Callerid, Recipientid, Datecalled)
-values(1, 2, '2019-01-01 09:00:00.000'),
-       (1, 3, '2019-01-01 17:00:00.000'),
-       (1, 4, '2019-01-01 23:00:00.000'),
-       (2, 5, '2019-07-05 09:00:00.000'),
-       (2, 3, '2019-07-05 17:00:00.000'),
-       (2, 3, '2019-07-05 17:20:00.000'),
-       (2, 5, '2019-07-05 23:00:00.000'),
-       (2, 3, '2019-08-01 09:00:00.000'),
-       (2, 3, '2019-08-01 17:00:00.000'),
-       (2, 5, '2019-08-01 19:30:00.000'),
-       (2, 4, '2019-08-02 09:00:00.000'),
-       (2, 5, '2019-08-02 10:00:00.000'),
-       (2, 5, '2019-08-02 10:45:00.000'),
-       (2, 4, '2019-08-02 11:00:00.000');
-       
-select * from phonelog;
+select * 
+from candidates;
 
-with calls as
+--if salary duplicates, then could be issue - therefore:
+
+with total_sal as 
 (
-select callerid,
-cast(datecalled as date) as called_date,
-min(datecalled) as firstcall,
-max(datecalled) as lastcall
-from phonelog
-group by callerid,cast(datecalled as date)
+select *,
+sum(salary) over (partition by experience order by salary asc rows between unbounded preceding and current row) as running_salary
+from candidates
+)
+,seniors as 
+(
+select *
+from total_sal
+where experience='senior' and running_salary<=70000
 )
 
-select c.*,p1.Recipientid  -- as first_recipient,p2.Recipientid as last_recipient
-from calls c
-inner join phonelog p1 on p1.callerid=c.callerid and c.firstcall=p1.datecalled
-inner join phonelog p2 on p2.callerid=c.callerid and c.lastcall=p2.datecalled
-where p1.Recipientid=p2.Recipientid
+
+select *
+from total_sal
+where experience='junior' and running_salary<=70000 - (select sum(salary) from seniors)
+union all 
+select * from seniors
 
 
-------------
---OR--
-------------
 
--- with cte AS (SELECT Callerid, Recipientid, CAST(Datecalled AS DATE) as Datecalled
--- FROM phonelog),
--- cte2 AS (SELECT *,
--- FIRST_VALUE(Recipientid) OVER(PARTITION BY Datecalled ORDER BY Datecalled) as first_value,
--- LAST_VALUE(Recipientid) OVER(PARTITION BY Datecalled ORDER BY Datecalled) as last_value
--- FROM cte)
 
--- SELECT Callerid, Datecalled, MAX(first_value) AS Recipientid FROM cte2
--- WHERE first_value = last_value
--- GROUP BY Callerid, Datecalled;
 
+
+/*WITH DUPLICATE SALARY:
+emp_id      experience           salary     
+----------- -------------------- -----------
+          1 Junior                     10000
+          2 Junior                     15000
+          7 Junior                     10000
+          3 Junior                     40000
+          4 Senior                     16000
+          5 Senior                     20000
+          6 Senior                     50000
+          
+
+
+select *,
+sum(salary) over (partition by experience order by salary asc rows between unbounded preceding and current row) as running_salary
+from candidates
+
+emp_id      experience           salary      running_salary
+----------- -------------------- ----------- --------------
+          7 Junior                     10000          10000
+          1 Junior                     10000          20000
+          2 Junior                     15000          35000
+          3 Junior                     40000          75000
+          4 Senior                     16000          16000
+          5 Senior                     20000          36000
+          6 Senior                     50000          86000
+          
+select *,
+sum(salary) over (partition by experience order by salary asc) as running_salary
+from candidates
+
+emp_id      experience           salary      running_salary
+----------- -------------------- ----------- --------------
+          7 Junior                     10000          20000
+          1 Junior                     10000          20000
+          2 Junior                     15000          35000
+          3 Junior                     40000          75000
+          4 Senior                     16000          16000
+          5 Senior                     20000          36000
+          6 Senior                     50000          86000
+          
+*/
