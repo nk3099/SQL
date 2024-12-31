@@ -6,7 +6,6 @@ with the total balance reset back to zero at the end of the month.
 Output the transaction date and cumulative balance.
 */
 
-
 with cte as 
 (select
 transaction_date::date as transaction_date,
