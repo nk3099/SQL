@@ -40,5 +40,5 @@ select
 distinct (a.user_id) --,a.product_id,a.created_at,b.user_id,b.product_id,b.created_at
 from except_first_app_purchases a
 left join first_app_purchases b 
-on a.user_id=b.user_id and a.product_id=b.product_id
+on a.user_id=b.user_id and a.product_id=b.product_id  --as to check if products are same or different on next day.
 
