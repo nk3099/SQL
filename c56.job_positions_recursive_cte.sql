@@ -32,7 +32,6 @@ from job_positions;
 select *
 from job_employees;
 
-
 with cte as 
 (
 select id,title,groups,levels,payscale,totalpost,1 as rn from job_positions
