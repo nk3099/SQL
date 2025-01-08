@@ -33,24 +33,24 @@ select *
 from job_employees;
 
 
--- with cte as 
--- (
--- select id,title,groups,levels,payscale,totalpost,1 as rn from job_positions
--- union all
--- select id,title,groups,levels,payscale,totalpost,rn+1 from cte
--- where rn<totalpost
--- )
--- , emp as (
--- select *
--- , row_number() over (partition by position_id order by id) as rn
--- from job_employees
--- )
+with cte as 
+(
+select id,title,groups,levels,payscale,totalpost,1 as rn from job_positions
+union all
+select id,title,groups,levels,payscale,totalpost,rn+1 from cte
+where rn<totalpost
+)
+, emp as (
+select *
+, row_number() over (partition by position_id order by id) as rn
+from job_employees
+)
 
--- select c.*, coalesce(e.name,'vacant') as name
--- from cte c
--- left join emp e
--- on e.position_id=c.id  and e.rn=c.rn
--- order by c.id, c.rn
+select c.*, coalesce(e.name,'vacant') as name
+from cte c
+left join emp e
+on e.position_id=c.id  and e.rn=c.rn
+order by c.id, c.rn;
 
 
 
