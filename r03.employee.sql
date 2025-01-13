@@ -1,3 +1,4 @@
+--Rishasbh Mishra SQL
 CREATE TABLE Employee (
 EmpID int NOT NULL,
 EmpName Varchar(10),
@@ -32,50 +33,65 @@ select * from Employee;
 select * from EmployeeDetail;
 ---------------------------------------------------
 
--- -- Q1(a): Find the list of employees whose salary ranges between 2L to 3L.
+--  Q1(a): Find the list of employees whose salary ranges between 2L to 3L.
 -- select EmpName, Salary 
--- from Employee where salary between 200000 and 300000
--- --or--
--- select EmpName, Salary
--- from Employee where salary >=200000 and salary<=300000
+--  from Employee where salary between 200000 and 300000
+--or--
+--  select EmpName, Salary
+--  from Employee where salary >=200000 and salary<=300000
 
--- -- Q1(b): Write a query to retrieve the list of employees from the same city.
--- select EmpName, City
--- from Employee
+--  Q1(b): Write a query to retrieve the list of employees from the same city.
+--  select EmpName, City
+--  from Employee
 -- where City IN (select city from Employee group by city having count(city)>1)
--- --or--
+--or--
 -- select e1.Empname, e2.Empname, e1.city
--- from Employee e1
--- join Employee e2 on e1.city=e2.city and e1.Empid<e2.Empid
+--  from Employee e1
+--  join Employee e2 on e1.city=e2.city and e1.Empid<e2.Empid
 
--- -- Q1(c): Query to find the null values in the Employee table.
+--  Q1(c): Query to find the null values in the Employee table.
+--  select *
+--- from Employee
+--  where EmpId is null --as primarykey(EmpId) would be not null & no duplicates
+
+-- Q2(a): Query to find the cumulative sum of employee’s salary.
+-- cumulative total refers to the running sum of values over time(i.e. increasing or growing by successive additions)
+-- select *
+-- , sum(salary) over (order by EmpId asc) as running_sum
+-- from Employee
+
+-- Q2(b): What’s the male and female employees ratio.
+-- select
+-- (count(case when Gender='M' then 1 end) *100 / count(*)) as males_ratio
+-- ,  count(case when Gender='F' then 1 end)*100 / count(*) as female_ratio
+-- from Employee
+
+-- Q2(c): Write a query to fetch 50% records from the Employee table.
 -- select *
 -- from Employee
--- where EmpId is null --as primarykey(EmpId) would be not null & no duplicates
-
---Q2(a): Query to find the cumulative sum of employee’s salary.
---cumulative total refers to the running sum of values over time(i.e. increasing or growing by successive additions)
-select *
-, sum(salary) over (order by EmpId asc) as running_sum
-from Employee
-
---Q2(b): What’s the male and female employees ratio.
-select
-(count(case when Gender='M' then 1 end) *100 / count(*)) as males_ratio
-,  count(case when Gender='F' then 1 end)*100 / count(*) as female_ratio
-from Employee
-
---Q2(c): Write a query to fetch 50% records from the Employee table.
-select *
-from Employee
-where EmpId <= (select count(EmpId)/2 from employee)
+-- where EmpId <= (select count(EmpId)/2 from employee)
 
 /*
 Q3: Query to fetch the employee’s salary but replace the LAST 2 digits with ‘XX’
 i.e 12345 will be 123XX
+*/
 
-Q4: Write a query to fetch even and odd rows from Employee table.
 
+--Q4: Write a query to fetch even and odd rows from Employee table.
+--ODD ROWS--
+-- select *
+-- from Employee
+-- where EmpId%2!=0
+--or--
+select *
+from 
+(select *, row_number() over (order by EmpId asc) as rn from Employee) A
+where A.rn%2=1
+--or--
+-- select * from Employee
+-- where MOD(EmpId,2)
+
+/*
 Q5(a): Write a query to find all the Employee names whose name:
 • Begin with ‘A’
 • Contains ‘A’ alphabet at second place
@@ -106,6 +122,3 @@ salary for each city.
 The result should display the EmpID, EmpName, and separate columns for each city
 (Mathura, Pune, Delhi), containing the corresponding total salary.
 */
-
-
-
