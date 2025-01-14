@@ -1,4 +1,5 @@
 --Rishasbh Mishra SQL
+
 CREATE TABLE Employee (
 EmpID int NOT NULL,
 EmpName Varchar(10),
@@ -92,21 +93,64 @@ where A.rn%2=1
 -- where MOD(EmpId,2)
 
 /*
-Q5(a): Write a query to find all the Employee names whose name:
-• Begin with ‘A’
-• Contains ‘A’ alphabet at second place
-• Contains ‘Y’ alphabet at second last place
-• Ends with ‘L’ and contains 4 alphabets
-• Begins with ‘V’ and ends with ‘A’
+-- Q5(a): Write a query to find all the Employee names whose name:
+-- • Begin with ‘A’
+Select * from Employee where Empname like 'A%'
 
-Q5(b): Write a query to find the list of Employee names which is:
-• starting with vowels (a, e, i, o, or u), without duplicates
-• ending with vowels (a, e, i, o, or u), without duplicates
-• starting & ending with vowels (a, e, i, o, or u), without duplicates
+-- • Contains ‘A’ alphabet at second place
+Select * from Employee where Empname like '_A%'
 
-Q6: Find Nth highest salary from employee table with and without using the
-TOP/LIMIT keywords.
+-- • Contains ‘Y’ alphabet at second last place
+Select * from Employee where Empname like '%Y_'
 
+-- • Ends with ‘L’ and contains 4 alphabets
+Select * from Employee where Empname like '____L'
+
+-- • Begins with ‘V’ and ends with ‘A’
+Select * from Employee where Empname like 'V%A'
+
+-- Q5(b): Write a query to find the list of Employee names which is:
+-- • starting with vowels (a, e, i, o, or u), without duplicates
+Select Distinct Empname from Employee where 
+Empname like 'A%' 
+or Empname like 'E%'
+or Empname like 'I%'
+or Empname like 'O%'
+or Empname like 'U%'
+--or--
+Select Distinct Empname from Employee 
+where Empname like '[aieou]%'
+--or using regex/rlike: --
+SELECT DISTINCT Empname
+FROM Employee
+WHERE Empname like '^[aeiou]';
+
+
+-- • ending with vowels (a, e, i, o, or u), without duplicates
+Select Distinct Empname from Employee where 
+Empname like '%[aeiou]'
+--or using regex/rlike: --
+SELECT DISTINCT Empname
+FROM Employee
+WHERE Empname like '[aeiou]$';
+
+
+-- • starting & ending with vowels (a, e, i, o, or u), without duplicates
+Select Distinct Empname from Employee where 
+Empname like '[aeiou]%[aeiou]'
+--or using regex/rlike: --
+SELECT DISTINCT Empname
+FROM Employee
+WHERE Empname like '^[aeiou].*[aeiou]$';
+*/
+
+-- Q6: Find Nth highest salary from employee table with and without using the
+-- TOP/LIMIT keywords.
+
+
+
+
+/*
 Q7(a): Write a query to find and remove duplicate records from a table.
 Q7(b): Query to retrieve the list of employees working in same project.
 
