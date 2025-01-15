@@ -144,9 +144,53 @@ FROM Employee
 WHERE Empname like '^[aeiou].*[aeiou]$';
 */
 
--- Q6: Find Nth highest salary from employee table with and without using the
--- TOP/LIMIT keywords.
+-- Q6: Find Nth highest salary from employee table with and without using the TOP/LIMIT keywords.
+--assume here3rd highest salary:
 
+select top 1 salary from Employee 
+where salary <
+(select top 1 salary
+from Employee where salary < (select max(salary) from Employee)
+order by salary desc) 
+order by salary desc
+
+--or--
+/*
+The LIMIT clause specifies the maximum number of rows to return. 
+The OFFSET clause specifies the number of rows to skip before starting to return rows.
+
+SELECT DISTINCT salary
+FROM employees
+ORDER BY salary DESC
+LIMIT 1 OFFSET 2; 
+
+*/
+
+declare @n INT = 3;  -- can change this to any value for n-th highest salary
+
+select TOP 1 Salary 
+from 
+(
+select TOP (@n) salary 
+from Employee 
+order by salary desc
+) A
+order by salary asc
+
+--finding the n-th highest salary without relying on LIMIT, OFFSET, or TOP--
+
+--NESTED CORRELATED QUERY--as E1. salary in Inner query also--
+select E1.salary from Employee E1
+where  3 = (
+select count(DISTINCT E2.salary) from Employee E2
+where E2.Salary >= E1.Salary
+)
+--or--(both are same, just that in below query: N-1 and > used (not >=))
+select E1.salary from Employee E1
+where  2 = (
+select count(DISTINCT E2.salary) from Employee E2
+where E2.Salary > E1.Salary
+)
 
 
 
