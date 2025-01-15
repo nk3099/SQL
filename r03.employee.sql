@@ -221,7 +221,11 @@ Scope: CONCAT() works on a row-by-row basis, meaning it will concatenate the val
 select ED.Project, STRING_AGG(E.EmpName,',') as emp from EmployeeDetail ED
 inner join Employee E on ED.EmpID=E.EmpID
 group by ED.Project
+having count(*)>1
 order by ED.Project
+
+--or--
+
 
 /*Q8: Show the employee with the highest salary for each project
 
