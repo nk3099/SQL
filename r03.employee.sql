@@ -192,13 +192,38 @@ select count(DISTINCT E2.salary) from Employee E2
 where E2.Salary > E1.Salary
 )
 
+--Q7(a): Write a query to find and remove duplicate records from a table.
 
+--as considering EmpId is unique
+Delete from Employee 
+where EmpID IN (Select EmpID
+from employee
+group by EmpID
+having count(*)>1
+)
 
+--or--But, best practice - to check with all the rows.
+Select EmpId, EmpName, Gender, Salary, City, count(*) as duplicate_count
+from Employee
+group by EmpId, EmpName, Gender, Salary, City 
+having count(*)>1
+
+--Q7(b): Query to retrieve the list of employees working in same project.
 /*
-Q7(a): Write a query to find and remove duplicate records from a table.
-Q7(b): Query to retrieve the list of employees working in same project.
+Purpose: GROUP_CONCAT() (MySQL) or STRING_AGG() (PostgreSQL, SQL Server) is an aggregate function used to concatenate values of a column across multiple rows into a single string.
+Scope: GROUP_CONCAT() operates across rows within each group (as defined by the GROUP BY clause). It combines the values of a column across multiple rows of a group into one string, 
+with a specified separator (default is a comma in MySQL).
 
-Q8: Show the employee with the highest salary for each project
+Purpose: The CONCAT() function is used to concatenate two or more strings into one. It can be used with literal values, columns, or any other expressions.
+Scope: CONCAT() works on a row-by-row basis, meaning it will concatenate the values for a single row at a time.
+*/
+
+select ED.Project, STRING_AGG(E.EmpName,',') as emp from EmployeeDetail ED
+inner join Employee E on ED.EmpID=E.EmpID
+group by ED.Project
+order by ED.Project
+
+/*Q8: Show the employee with the highest salary for each project
 
 Q9: Query to find the total count of employees joined each year
 
