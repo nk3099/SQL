@@ -260,13 +260,17 @@ where rnk=1
 --Q9: Query to find the total count of employees joined each year
 select DATEPART(Year,DOJ) as year,Count(EmpId) as cnt  --or--,Select YEAR(DOJ) as year--
 from EmployeeDetail
-GROUP by DATEPART(Year,DOJ)
+GROUP by DATEPART(Year,DOJ);
+
 
 --Q10: Create 3 groups based on salary col, salary less than 1L is low, 
 -- between 1 -2L is medium and above 2L is High
-
-
-
+select *,
+case when salary < 100000 then 'Low' 
+when salary between 100000 and 200000 then 'Medium' 
+else 'High'
+end as salary_groups
+from Employee;
 
 /*
 BONUS: Query to pivot the data in the Employee table and retrieve the total
@@ -274,3 +278,12 @@ salary for each city.
 The result should display the EmpID, EmpName, and separate columns for each city
 (Mathura, Pune, Delhi), containing the corresponding total salary.
 */
+
+select 
+EmpID
+, EmpName
+, sum(case when city='Mathura' then salary end) as 'Mathura'
+, sum(case when city='Pune' then salary end) as 'Pune'
+, sum(case when city='Delhi' then salary end) as 'Delhi'
+from Employee
+group by EmpId, EmpName
