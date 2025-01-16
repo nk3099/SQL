@@ -206,7 +206,7 @@ having count(*)>1
 Select EmpId, EmpName, Gender, Salary, City, count(*) as duplicate_count
 from Employee
 group by EmpId, EmpName, Gender, Salary, City 
-having count(*)>1
+having count(*)>1;
 
 --Q7(b): Query to retrieve the list of employees working in same project.
 /*
@@ -222,18 +222,53 @@ select ED.Project, STRING_AGG(E.EmpName,',') as emp from EmployeeDetail ED
 inner join Employee E on ED.EmpID=E.EmpID
 group by ED.Project
 having count(*)>1
-order by ED.Project
+order by ED.Project;
 
---or--
+with proj as (select ED.Project, E.EmpName, E.EmpId from EmployeeDetail ED
+inner join Employee E on ED.EmpID=E.EmpID)
+select * from proj p1 
+join proj p2 on p1.project=p2.project
+where p1.EmpId!=p2.EmpId and p1.EmpId < p2.EmpId;
+
+--Q8: Show the employee with the highest salary for each project
+
+select ED.Project, MAX(E.salary) as maxsal, SUM(E.salary) as totalsal
+from EmployeeDetail ED
+inner join Employee E on ED.EmpID=E.EmpID
+group by ED.Project;
 
 
-/*Q8: Show the employee with the highest salary for each project
+/*
+Error: The column 'EmpID' was specified multiple times for 'max_salary'
+on select e.EmpID,e.EmpName,e.Salary,ed.project, ed.EmpID
 
-Q9: Query to find the total count of employees joined each year
+Solution:
+Whenever you're joining tables and the same column exists in multiple tables, 
+use aliases for the columns to avoid ambiguity.
+ie. select e.EmpID,e.EmpName,e.Salary,ed.project, ed.EmpID as edEmployeeId
+*/
+with max_salary as 
+(
+select e.EmpID,e.EmpName,e.Salary,ed.project, ed.EmpID as edEmployeeId
+, row_number() over (partition by ed.project order by e.salary desc) as rnk
+from Employee e 
+join EmployeeDetail ed on e.EmpID=ed.EmpID
+)
+select * from max_salary
+where rnk=1
 
-Q10: Create 3 groups based on salary col, salary less than 1L is low, between 1 -
-2L is medium and above 2L is High
+--Q9: Query to find the total count of employees joined each year
+select DATEPART(Year,DOJ) as year,Count(EmpId) as cnt  --or--,Select YEAR(DOJ) as year--
+from EmployeeDetail
+GROUP by DATEPART(Year,DOJ)
 
+--Q10: Create 3 groups based on salary col, salary less than 1L is low, 
+-- between 1 -2L is medium and above 2L is High
+
+
+
+
+/*
 BONUS: Query to pivot the data in the Employee table and retrieve the total
 salary for each city.
 The result should display the EmpID, EmpName, and separate columns for each city
