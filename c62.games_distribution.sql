@@ -56,9 +56,7 @@ group by game_id
 )
 
 select game_type, count(*) as count, count(*) over () as total_count, count(*)*100.0/count(*) over () as percentage
-
 from cte
 group by game_type
-
 
 
