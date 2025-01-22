@@ -41,7 +41,7 @@ INSERT INTO LOGINS  VALUES (9, '2023-12-15 13:15:00', 1009, 79);
 
 -- 2024 Q1
 INSERT INTO LOGINS (USER_ID, LOGIN_TIMESTAMP, SESSION_ID, SESSION_SCORE) VALUES (1, '2024-01-10 07:45:00', 1011, 86);
-INSERT INTO LOGINS (USER_ID, LOGIN_TIMESTAMP, SESSION_ID, SESSION_SCORE) VALUES (2, '2024-01-25 09:30:00', 1012, 89);
+INSERT INTO LOGINS (USER_ID, LOGIN_TIMESTAMP, SESSION_ID, SESSION_SCORE) VALUES (2, '2024-01-15 09:30:00', 1012, 89);
 INSERT INTO LOGINS (USER_ID, LOGIN_TIMESTAMP, SESSION_ID, SESSION_SCORE) VALUES (3, '2024-02-05 11:00:00', 1013, 78);
 INSERT INTO LOGINS (USER_ID, LOGIN_TIMESTAMP, SESSION_ID, SESSION_SCORE) VALUES (4, '2024-03-01 14:30:00', 1014, 91);
 INSERT INTO LOGINS (USER_ID, LOGIN_TIMESTAMP, SESSION_ID, SESSION_SCORE) VALUES (5, '2024-03-15 16:00:00', 1015, 83);
@@ -57,14 +57,36 @@ INSERT INTO LOGINS (USER_ID, LOGIN_TIMESTAMP, SESSION_ID, SESSION_SCORE) VALUES 
 INSERT INTO LOGINS (USER_ID, LOGIN_TIMESTAMP, SESSION_ID, SESSION_SCORE) VALUES (1, '2024-01-10 07:45:00', 1101, 86);
 INSERT INTO LOGINS (USER_ID, LOGIN_TIMESTAMP, SESSION_ID, SESSION_SCORE) VALUES (3, '2024-01-25 09:30:00', 1102, 89);
 INSERT INTO LOGINS (USER_ID, LOGIN_TIMESTAMP, SESSION_ID, SESSION_SCORE) VALUES (5, '2024-01-15 11:00:00', 1103, 78);
-INSERT INTO LOGINS (USER_ID, LOGIN_TIMESTAMP, SESSION_ID, SESSION_SCORE) VALUES (2, '2023-11-10 07:45:00', 1201, 82);
+INSERT INTO LOGINS (USER_ID, LOGIN_TIMESTAMP, SESSION_ID, SESSION_SCORE) VALUES (2, '2025-01-10 07:45:00', 1201, 82);
 INSERT INTO LOGINS (USER_ID, LOGIN_TIMESTAMP, SESSION_ID, SESSION_SCORE) VALUES (4, '2023-11-25 09:30:00', 1202, 84);
 INSERT INTO LOGINS (USER_ID, LOGIN_TIMESTAMP, SESSION_ID, SESSION_SCORE) VALUES (6, '2023-11-15 11:00:00', 1203, 80);
 
 
-select * from users
-select * from logins
+select * from users;
+select * from logins;
 
 
---1.Management wants to see all the users that did not login in pasat 5 months 
---return: userna,e.
+--1.Management wants to see all the users that did not login in past 5 months 
+--return: username.
+
+--today's date: 22nd Jan 2025
+--5months back(prev.) date: 22nd August 2024 
+select USER_ID,MAX(LOGIN_TIMESTAMP) as latest_login
+from logins
+group by USER_ID
+having MAX(LOGIN_TIMESTAMP) < DATEADD(month,-5,GETDATE()) -- as prev_5month_date
+
+--or--
+select USER_ID from logins 
+where USER_ID NOT IN
+(select USER_ID
+from logins
+where LOGIN_TIMESTAMP > DATEADD(month,-5,GETDATE()) --who logged in after last 5 months inner-subquery
+)
+
+
+--2. For the business units' quarterly analysis, calculate how many users and 
+--how many sessions were at each quarter. 
+--order by quarter from newsest to oldest. 
+--Return: first day of gthe quarter, user_cnt, session_cnt
+
