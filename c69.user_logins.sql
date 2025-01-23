@@ -88,5 +88,29 @@ where LOGIN_TIMESTAMP > DATEADD(month,-5,GETDATE()) --who logged in after last 5
 --2. For the business units' quarterly analysis, calculate how many users and 
 --how many sessions were at each quarter. 
 --order by quarter from newsest to oldest. 
---Return: first day of gthe quarter, user_cnt, session_cnt
+--Return: first day of the quarter, user_cnt, session_cnt
+
+select 
+--datepart(quarter,LOGIN_TIMESTAMP) as quarter_no, 
+count(*) as session_cnt
+, count(distinct USER_ID) as user_cnt
+--, min(LOGIN_TIMESTAMP) as quarter_first_login
+, DATETRUNC(quarter, min(LOGIN_TIMESTAMP)) as first_quarter_date
+from logins
+group by datepart(quarter,LOGIN_TIMESTAMP)
+
+--DATETRUNC function:  in SQL is used to truncate a date or timestamp
+--to a specified unit of time (such as year, month, day, hour, etc.)
+--In general, truncate means to shorten or cut off something
+
+
+
+--3. Display user id's that Log-in in January 2023 and 
+--did not Log-in on November 2023 
+-- Return: User_id
+
+
+
+
+
 
