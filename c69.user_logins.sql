@@ -109,6 +109,70 @@ group by datepart(quarter,LOGIN_TIMESTAMP)
 --did not Log-in on November 2023 
 -- Return: User_id
 
+select distinct USER_ID
+from  logins 
+where LOGIN_TIMESTAMP between '2023-01-01' and '2023-01-31'
+and USER_ID NOT IN (select USER_ID
+from logins
+where LOGIN_TIMESTAMP between '2023-11-01' and '2023-11-30'
+);
+
+
+
+--4.Add to the query from 2 the percent change in sessions from last quarter. 
+--Return : first day of the quarter, session_cnt, session_cnt_prev, session_percentage_change
+
+with cte as(
+select count(*) as session_cnt
+, count(distinct USER_ID) as user_cnt
+, DATETRUNC(quarter, min(LOGIN_TIMESTAMP)) as first_quarter_date
+from logins
+group by datepart(quarter,LOGIN_TIMESTAMP)
+-- order by first_quarter_date
+)
+
+select * 
+, lag(session_cnt,1) over (order by first_quarter_date) as prev_session_cnt
+, (session_cnt- (lag(session_cnt,1,session_cnt) over (order by first_quarter_date))*100.0)/(lag(session_cnt,1,session_cnt) over (order by first_quarter_date)) as session_percentage_change
+from cte;
+
+
+--5. Display the user that had the highest session score (max) for each day. --Return: Date, username, score
+
+with cte as(
+select user_id,CAST(LOGIN_TIMESTAMP as date) as date, sum(SESSION_SCORE) as score
+from logins
+group by user_id, CAST(LOGIN_TIMESTAMP as date)
+-- order by date, score
+)
+select * from
+(
+select *
+, row_number() over (partition by date order by score desc) as rnk
+from cte
+) A
+where rnk=1
+
+/*as:
+
+user_id     date             score      
+----------- ---------------- -----------
+ 5        2024-01-15          78
+ 2       2024-01-15          89
+ 
+therefore, need to print user_id having max(session score) for each day now.
+
+user_id     date             score       rnk                 
+----------- ---------------- ----------- --------------------
+
+   2       2024-01-15          89                    1
+   5       2024-01-15          78                    2
+*/
+
+
+--6. To identify our best users - Return the usres that had a session on every single day since their first login. 
+--(make assumptions if needed). 
+--Return: User_id
 
 
 
