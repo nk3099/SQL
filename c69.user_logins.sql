@@ -174,7 +174,17 @@ user_id     date             score       rnk
 --(make assumptions if needed). 
 --Return: User_id
 
+select USER_ID, MIN(CAST(LOGIN_TIMESTAMP AS DATE)) as firstlogin
+, DATEDIFF(day, MIN(CAST(LOGIN_TIMESTAMP AS DATE)), GETDATE())+1 as no_of_login_days_required --getdate() gives current_date, therefore this gives the difference between firstlogin and current_date
+, count(distinct CAST(LOGIN_TIMESTAMP AS DATE)) as no_of_login_days
+from logins
+group by USER_ID
+having DATEDIFF(day, MIN(CAST(LOGIN_TIMESTAMP AS DATE)), GETDATE())+1 = count(distinct CAST(LOGIN_TIMESTAMP AS DATE)) --as both are aggregated values, therefore can be used in Groupby clause
+order by USER_ID
+--assuming today's date: (current_date) 25th Jan 2025
 
 
 
 
+--7.On what dates there were no Log-in at all? 
+-- Return: Login_dates
