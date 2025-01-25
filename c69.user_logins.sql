@@ -184,7 +184,16 @@ order by USER_ID
 --assuming today's date: (current_date) 25th Jan 2025
 
 
-
-
 --7.On what dates there were no Log-in at all? 
 -- Return: Login_dates
+
+select *
+from logins
+order by LOGIN_TIMESTAMP
+/*
+USER_ID     LOGIN_TIMESTAMP         SESSION_ID  SESSION_SCORE
+----------- ----------------------- ----------- -------------
+          1 2023-07-15 09:30:00.000        1001            85
+          .....
+*/
+----therefore: between these 2 dates 2023-07-15 and (current_date)2025-01-25 -- where none of the user has logged-in.
