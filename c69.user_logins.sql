@@ -187,9 +187,9 @@ order by USER_ID
 --7.On what dates there were no Log-in at all? 
 -- Return: Login_dates
 
-select *
-from logins
-order by LOGIN_TIMESTAMP
+select CAST(MIN(LOGIN_TIMESTAMP) as DATE) as first_date, CAST(GETDATE() as DATE) as last_date
+from logins;
+
 /*
 USER_ID     LOGIN_TIMESTAMP         SESSION_ID  SESSION_SCORE
 ----------- ----------------------- ----------- -------------
@@ -197,3 +197,29 @@ USER_ID     LOGIN_TIMESTAMP         SESSION_ID  SESSION_SCORE
           .....
 */
 ----therefore: between these 2 dates 2023-07-15 and (current_date)2025-01-25 -- where none of the user has logged-in.
+
+-- select cal_date 
+-- from 
+-- calendar_dim c 
+-- innner join 
+-- (select CAST(MIN(LOGIN_TIMESTAMP) as DATE) as first_date, CAST(GETDATE() as DATE) as last_date
+-- from logins) a 
+-- on c.cal_date between first_date and last_date
+-- where cal_date not in (select cast(LOGIN_TIMESTAMP AS DATE) from logins)
+
+--or--
+--Recursive CTE:
+
+with cte as 
+(
+select CAST(MIN(LOGIN_TIMESTAMP) as DATE) as first_date, CAST(GETDATE() as DATE) as last_date
+from logins
+union all 
+select DATEADD(day,1,first_date)as fist_date, last_date 
+from cte
+where first_date < last_date 
+)
+select * from cte
+where first_date not in (select cast(LOGIN_TIMESTAMP AS DATE) from logins)
+option(maxrecursion 1000)
+--The statement terminated. The maximum recursion 100 has been exhausted before statement completion.
