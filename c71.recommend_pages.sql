@@ -69,7 +69,7 @@ where up.page_id is null;
 
 
 --solution 3: NOT IN (on 2 columns)
-select f.user_id, fp.page_id --, CONCAT(f.user_id,fp.page_id) as concat_columns 
+select f.user_id, fp.page_id , CONCAT(f.user_id,fp.page_id) as concat_columns 
 from friends f 
 inner join likes fp on f.friend_id=fp.user_id
 where CONCAT(f.user_id,fp.page_id) 
@@ -84,17 +84,20 @@ group by f.user_id, fp.page_id; --(or) also could have done "select DISTINCT f.u
 
 
 --solution 4: simple using NOT IN 
--- with cte as
--- (
--- select distinct f.user_id, l.page_id from friends f
--- join likes l on f.friend_id = l.user_id
--- )
--- select user_id, page_id from cte
+with cte as
+(
+select distinct f.user_id, l.page_id 
+from friends f
+join likes l on f.friend_id = l.user_id
+)
+
+-- select user_id, page_id 
+-- from cte
 -- where (user_id, page_id) not in (select user_id, page_id from likes);
+--error:An expression of non-boolean type specified in a context where a condition is expected, near ','.
 
-
--- from user_pages u 
--- group by u.user_id
--- having u.page_id not in (select f.page_id from friends_pages f)
-
+--therefore using CONCAT(col1,col2..) in MSSQL for multiple columns when used in NOT IN
+select user_id, page_id 
+from cte
+where concat(user_id, page_id) not in (select concat(user_id, page_id) from likes);
 
