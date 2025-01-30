@@ -3,7 +3,6 @@
 -- 1 2 2 3 3 3 4 4 4 4 5 5 5 5 5 
 --please note: can use recursive cte.
 
-
 create table numbers (n int);
 insert into numbers values (1),(2),(3),(4),(5)
 insert into numbers values (9)
