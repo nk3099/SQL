@@ -8,7 +8,7 @@ CREATE TABLE subscription_history (
     marketplace VARCHAR(10),
     event_date DATE,
     event CHAR(1),
-    subscription_period INT
+    subscription_period INT --is in months.
 );
 
 INSERT INTO subscription_history VALUES (1, 'India', '2020-01-05', 'S', 6);
@@ -30,4 +30,16 @@ INSERT INTO subscription_history VALUES (8, 'Canada', '2020-09-10', 'S', 12);
 INSERT INTO subscription_history VALUES (8, 'Canada', '2020-12-10', 'C', null);
 INSERT INTO subscription_history VALUES (9, 'Canada', '2020-11-10', 'S', 1);
 
-select * from subscription_history
+select * from subscription_history;
+
+with cte as (
+select *
+, row_number() over (partition by customer_id order by event_date desc) as rn
+from subscription_history 
+where event_date<='2020-12-31'
+)
+select *
+, dateadd(month,subscription_period,event_date) as valid_till_date 
+from cte
+where rn=1 and event!='C'
+and dateadd(month,subscription_period,event_date) >= '2020-12-31'
