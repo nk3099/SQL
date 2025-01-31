@@ -27,7 +27,6 @@ with cte as
 select *
 , lag(event_time,1,event_time) over (partition by userid order by event_time) as prev_event
 , datediff(minute,lag(event_time,1,event_time) over (partition by userid order by event_time), event_time) as time_diff
---, case when datediff(minute,event_time,lag(event_time) over (partition by userid order by event_time))=30 then 1 else 0 end as inter
 from events
 )
 ,cte2 as 
