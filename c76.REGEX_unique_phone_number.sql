@@ -1,5 +1,9 @@
+--day76.A column contains list of phone numbers as keyed in by users. 
+--You are supposed to find only those phone numbers which don't have any repeating numbers, 
+--ie. all numbers of the phone number must be unique
+--Also, pls ignore the starting extension part of phone
 
---day76.
+
 --NOTE:
 /*SQL Server doesn’t have direct support 
 for regular expressions like some other databases (e.g., PostgreSQL)*
@@ -11,10 +15,7 @@ the full power of regular expressions, but they can handle many common use cases
 for pattern matching.
 */
 
---A column contains list of phone numbers as keyed in by users. 
---You are supposed to find only those phone numbers which don't have any repeating numbers, 
---ie. all numbers of the phone number must be unique
---Also, pls ignore the starting extension part of phone
+
 
 create table phone_numbers (num varchar(20));
 insert into phone_numbers values
@@ -50,7 +51,10 @@ select * from phone_numbers;
 --Method 2: in MSSQL
 
 with cte as (
-select *,substring(num,CHARINDEX('-',num,0)+1,len(num)+1) phone
+select *
+-- ,substring(num,CHARINDEX('-',num,0)+1,len(num)+1) phone
+,SUBSTRING(num, CHARINDEX('-', num, 0) + 1, LEN(num) - CHARINDEX('-', num, 0))  as phone
+
 from 
 phone_numbers
 )
