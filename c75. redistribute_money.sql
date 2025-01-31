@@ -47,12 +47,6 @@ select * from poll_answers;
 --id2=750, id5=150, id7=600  (therefore, % from money of losers = 1500)
 
 
-
--- select 
--- , sum(case when pa.poll_id is null then amount end) as redistributed_money
--- from polls p
--- left join poll_answers pa on p.poll_id=pa.poll_id and p.poll_option_id=pa.correct_option_id
-
 with cte as 
 (select p.poll_id, sum(amount) as redistribute_money
 from polls p 
@@ -70,4 +64,22 @@ join poll_answers pa on p.poll_id=pa.poll_id and p.poll_option_id=pa.correct_opt
 select cte.poll_id, cte2.user_id
 , (redistribute_money*proportion) as winning_amount
 from cte2
-inner join cte on cte2.poll_id = cte.poll_id
+inner join cte on cte2.poll_id = cte.poll_id;
+
+
+--or--
+
+with cte3 as 
+(
+select p.poll_id, p.user_id, p.poll_option_id, p.amount, pa.poll_id as pa_pollid, pa.correct_option_id
+, sum(case when p.poll_option_id=pa.correct_option_id then amount end) over (partition by p.poll_id) as winners_money
+, sum(case when p.poll_option_id<>pa.correct_option_id then amount end) over (partition by p.poll_id) as redistributed_money
+--, SUM(amount) FILTER(WHERE poll_option_id<>correct_option_id) OVER(PARTITION BY poll_id) as total_losers_amount
+from polls p
+left join poll_answers pa on p.poll_id=pa.poll_id
+)
+
+select  poll_id, user_id, (amount*1.0/winners_money)*redistributed_money as total
+,amount*(redistributed_money/winners_money) as alsocorrect
+from cte3
+where poll_option_id=correct_option_id
