@@ -19,3 +19,5 @@ insert into events VALUES (2, 'click', '2023-09-10 10:30:00');
 
 
 select * from events;
+
+--we need to find time difference between event_time of consecutive events.
