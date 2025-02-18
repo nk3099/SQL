@@ -62,4 +62,39 @@ SELECT experience,
 FROM assessments
 GROUP BY experience;
 
+--or--
 
+with cte as (
+select id,experience, sql as score, 'sql' as subject
+from assessments
+union all
+select id,experience, algo as score, 'algo' as subject
+from assessments
+union all
+select id, experience, bug_fixing as score, 'bug_fixing' as subject
+from assessments
+)
+select experience, count(*) as total_candidates
+, sum(perfect_score_flag) as max_score_students
+from
+(
+select id, experience
+, case when sum(case when score is null or score=100 then 1 else 0 end)=3 then 1 else 0 end as perfect_score_flag
+from cte
+group by id, experience
+) A
+group by experience
+
+
+
+/*to make dynamic, we can add one more unionall for new subject and use below query:
+(
+select id, experience
+, case when 
+     sum(case when score is null or score=100 then 1 else 0 end)
+     = select count(distinct subject) from cte)
+     then 1 else 0 end as perfect_score_flag
+from cte
+group by id, experience
+) A
+*/
