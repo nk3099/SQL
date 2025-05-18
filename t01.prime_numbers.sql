@@ -26,7 +26,6 @@ Primes AS (
         WHERE Divisors.num < CTE.num AND Divisors.num > 1 AND CTE.num % Divisors.num = 0
     )
  )
-
 SELECT STRING_AGG(CAST(num AS VARCHAR), '&') AS PrimeList
 FROM Primes
 OPTION (MAXRECURSION 0);
