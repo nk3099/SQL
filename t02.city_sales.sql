@@ -72,7 +72,7 @@ select country, state, null as city, new_sales
 from state_extra_sales
 --order by country, state, city
 )
-
+, final_query as (
 select * from city_and_state_sales 
 union all
 (
@@ -90,4 +90,16 @@ group by country
 ) B 
 on A.country = B.country
 )
+-- order by state
+)
+
+select country, state,
+case 
+when city is not null then city
+when city is null and state is null then 'entire '+country
+when count(state) over (partition by state) = 1 then 'entire '+state
+else 'rest of '+state 
+end as city
+, sales
+from final_query
 order by state
