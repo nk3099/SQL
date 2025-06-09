@@ -64,9 +64,30 @@ left join city_level_state_sales clss
 on ss.state=clss.state
 where ss.sales!=isnull(clss.sales,0)
 )
-
+,
+city_and_state_sales as (
 select * from city_sales 
 union all
 select country, state, null as city, new_sales
 from state_extra_sales
-order by country, state, city
+--order by country, state, city
+)
+
+select * from city_and_state_sales 
+union all
+(
+select A.country, null as state, null as city, A.sales - B.sales as sales
+from 
+(
+select distinct t2.country, t1.sales
+from input_table_2 t2 
+inner join input_table_1 t1 
+on t2.country  = t1.Market
+) A 
+inner join 
+( select country, sum(sales) as sales from city_and_state_sales
+group by country
+) B 
+on A.country = B.country
+)
+order by state
