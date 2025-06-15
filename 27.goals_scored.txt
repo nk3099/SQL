@@ -1,13 +1,13 @@
 Day 27: Goals scored in each match
 
-select game.match_id, game.match_date,
+select game.id, game.mdate,
 team1,
-sum(case when game.team1=goal.team_id then 1 else 0 end) as team_1_goal,
+sum(case when game.team1=goal.teamid then 1 else 0 end) as team_1_goal,
 team2,
-sum(case when game.team2=goal.team_id then 1 else 0 end) as team_2_goal
+sum(case when game.team2=goal.teamid then 1 else 0 end) as team_2_goal
 from game 
-left join goal on game.match_id=goal.match_id
-group by game.match_id,game.match_date,team1,team2
+left join goal on game.id=goal.matchid
+group by game.id,game.mdate,team1,team2
 
 --OR--
 
