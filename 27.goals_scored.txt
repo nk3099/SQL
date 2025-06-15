@@ -81,10 +81,21 @@ left join scorecard sc
 on g.id=sc.matchid
 group by g.id,g.mdate,g.team1,g.team2
 
+--OR-- 
+with scorecard as (
+select matchid, teamid, count(*) as score
+from goal 
+group by matchid,teamid
+)
 
-
-
-
+select g.id,g.mdate,g.team1
+, max(case when g.team1=sc.teamid then score else 0 end) as score1
+,g.team2
+, max(case when g.team2=sc.teamid then score else 0 end) as score2
+from game g
+left join scorecard sc 
+on g.id=sc.matchid
+group by g.id,g.mdate,g.team1,g.team2
 
 
 
