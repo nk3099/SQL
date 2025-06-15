@@ -9,3 +9,97 @@ from game
 left join goal on game.match_id=goal.match_id
 group by game.match_id,game.match_date,team1,team2
 
+--OR--
+
+-- Create Team Table
+CREATE TABLE Team (
+    id CHAR(1) PRIMARY KEY,
+    teamname VARCHAR(50),
+    coach VARCHAR(50)
+);
+
+-- Create Goal Table
+CREATE TABLE Goal (
+    matchid INT,
+    teamid CHAR(1),
+    player VARCHAR(50),
+    goal_time INT,
+    
+);
+
+-- Create Game Table
+CREATE TABLE Game (
+    id INT PRIMARY KEY,
+    mdate DATE,
+    stadium VARCHAR(50),
+    team1 CHAR(1),
+    team2 CHAR(1),
+    
+);
+
+-- Insert Data into Team Table
+INSERT INTO Team (id, teamname, coach) VALUES
+('A', 'Team_A', 'Coach_A'),
+('B', 'Team_B', 'Coach_B'),
+('C', 'Team_C', 'Coach_C'),
+('D', 'Team_D', 'Coach_D');
+
+-- Insert Data into Goal Table
+INSERT INTO Goal (matchid, teamid, player, goal_time) VALUES
+(101, 'A', 'A1', 17),
+(101, 'A', 'A9', 58),
+(101, 'B', 'B7', 89),
+(102, 'D', 'D10', 63);
+
+-- Insert Data into Game Table
+INSERT INTO Game (id, mdate, stadium, team1, team2) VALUES
+(101, '2019-01-04', 'stadium1', 'A', 'B'),
+(102, '2019-01-04', 'stadium3', 'D', 'E'),
+(103, '2019-01-10', 'stadium1', 'A', 'C'),
+(104, '2019-01-13', 'stadium2', 'B', 'E');
+
+
+--Output: mdate,team1,score1,team2,score2
+
+
+select * from team;
+select * from goal;
+select * from game;
+
+with scorecard as (
+select matchid, teamid, count(*) as score
+from goal 
+group by matchid,teamid
+)
+
+select g.id,g.mdate,g.team1
+, isnull(max(case when g.team1=sc.teamid then score end),0) as score1
+,g.team2
+, coalesce(max(case when g.team2=sc.teamid then score end),0) as score2
+from game g
+left join scorecard sc 
+on g.id=sc.matchid
+group by g.id,g.mdate,g.team1,g.team2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
