@@ -5,3 +5,15 @@ Refrences:
 
 - Ankit Bansal SQL:
 - https://www.youtube.com/@ankitbansal6
+
+
+
+### ordering of SQL execution
+-------------------------------------------
+<b>FROM</b> & <b>JOINs</b> determine & filter rows <br>
+<b>WHERE</b> more filters on the rows <br>
+<b>GROUP BY</b> combines those rows into groups <br>
+<b>HAVING</b> filters groups <br>
+<b>SELECT </b><br>
+<b>ORDER BY</b> arranges the remaining rows/groups <br>
+<b>LIMIT</b> filters on the remaining rows/groups <br>
