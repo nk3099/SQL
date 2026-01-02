@@ -1,0 +1,246 @@
+
+name: Publish SQL to Astro Blog
+
+on:
+  push:
+    paths:
+      - '**/*.sql'
+  workflow_dispatch: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout SQL repo
+        uses: actions/checkout@v4
+
+      - name: Checkout Blog repo (Astro)
+        uses: actions/checkout@v4
+        with:
+          repository: nk3099/neeraj-astro-blog
+          token: ${{ secrets.BLOG_REPO_PAT }}
+          path: blog
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Generate Astro Markdown posts from .sql
+        run: |
+          node <<'EOF'
+          const fs = require('fs');
+          const path = require('path');
+
+          const ROOT = process.cwd();
+          const BLOG_DIR = path.join(ROOT, 'blog');
+          const POSTS_DIR = path.join(BLOG_DIR, 'src', 'pages', 'posts');
+
+          fs.mkdirSync(POSTS_DIR, { recursive: true });
+
+          // Helpers
+          const slugify = (s) =>
+            s.toLowerCase()
+             .replace(/\s+/g, '-')
+             .replace(/[^\w-]/g, '')
+             .replace(/-+/g, '-')
+             .replace(/^-|-$/g, '');
+
+          const nowIST = () => {
+            const now = new Date();
+            const istOffsetMs = 5.5 * 60 * 60 * 1000;
+            return new Date(now.getTime() + istOffsetMs).toISOString().slice(0, 10);
+          };
+
+          const readAllSqlFiles = (dir) => {
+            let out = [];
+            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+              const full = path.join(dir, entry.name);
+              if (full.startsWith(BLOG_DIR)) continue; // skip checked-out blog
+              if (entry.isDirectory()) out = out.concat(readAllSqlFiles(full));
+              else if (entry.isFile() && full.endsWith('.sql')) out.push(full);
+            }
+            return out;
+          };
+
+          // Parse a .sql file into {meta, problem, setup, solution}
+          function parseSqlFile(sqlText) {
+            const lines = sqlText.split(/\r?\n/);
+
+            // Section markers (recommended in your .sql files):
+            // -- TITLE: SQL: Day2
+            // -- DATE: 2026-01-02
+            // -- TAGS: CROSS APPLY, STRING_SPLIT
+            // -- PROBLEM:
+            // ... lines ...
+            // -- END PROBLEM
+            // -- SETUP:
+            // ... lines ...
+            // -- END SETUP
+            // -- SOLUTION:
+            // ... lines ...
+            // -- END SOLUTION
+
+            const meta = { title: '', date: '', tags: [] };
+            let problemLines = [];
+            let setupLines = [];
+            let solutionLines = [];
+
+            let section = null;
+
+            // Simple detectors (fallbacks if markers are not present)
+            const isComment = (l) => l.trim().startsWith('--');
+            const isCreate = (l) => /^\s*CREATE\s+/i.test(l);
+            const isInsert = (l) => /^\s*INSERT\s+/i.test(l);
+            const isDelete = (l) => /^\s*DELETE\s+/i.test(l);
+            const isSelect = (l) => /^\s*SELECT\s+/i.test(l);
+
+            // First pass: read markers & meta
+            for (let raw of lines) {
+              const l = raw;
+
+              // Meta
+              if (/^\s*--\s*TITLE:/i.test(l)) {
+                meta.title = l.replace(/^\s*--\s*TITLE:\s*/i, '').trim();
+                continue;
+              }
+              if (/^\s*--\s*DATE:/i.test(l)) {
+                meta.date = l.replace(/^\s*--\s*DATE:\s*/i, '').trim();
+                continue;
+              }
+              if (/^\s*--\s*TAGS:/i.test(l)) {
+                meta.tags = l
+                  .replace(/^\s*--\s*TAGS:\s*/i, '')
+                  .split(',')
+                  .map(s => s.trim())
+                  .filter(Boolean);
+                continue;
+              }
+
+              // Section start
+              if (/^\s*--\s*PROBLEM:/i.test(l)) { section = 'problem'; continue; }
+              if (/^\s*--\s*SETUP:/i.test(l)) { section = 'setup'; continue; }
+              if (/^\s*--\s*SOLUTION:/i.test(l)) { section = 'solution'; continue; }
+
+              // Section end
+              if (/^\s*--\s*END\s+PROBLEM/i.test(l)) { section = null; continue; }
+              if (/^\s*--\s*END\s+SETUP/i.test(l)) { section = null; continue; }
+              if (/^\s*--\s*END\s+SOLUTION/i.test(l)) { section = null; continue; }
+
+              // Collect by section
+              if (section === 'problem') problemLines.push(l.replace(/^\s*--\s?/, ''));
+              else if (section === 'setup') setupLines.push(l);
+              else if (section === 'solution') solutionLines.push(l);
+            }
+
+            // Fallbacks if markers missing
+            if (problemLines.length === 0) {
+              // Take leading comment block as problem statement
+              for (const l of lines) {
+                if (isComment(l)) problemLines.push(l.replace(/^\s*--\s?/, ''));
+                else break;
+              }
+            }
+            if (setupLines.length === 0 || solutionLines.length === 0) {
+              // Heuristic: DDL/DML -> setup, last SELECT block -> solution
+              let lastSelectIdx = -1;
+              lines.forEach((l, idx) => { if (isSelect(l)) lastSelectIdx = idx; });
+              if (lastSelectIdx !== -1) {
+                solutionLines = lines.slice(lastSelectIdx).filter(Boolean);
+                setupLines = lines.slice(0, lastSelectIdx).filter(Boolean);
+              } else {
+                // No SELECT; treat everything as setup
+                setupLines = lines;
+              }
+            }
+
+            // Auto tags if not provided
+            if (meta.tags.length === 0) {
+              const joined = lines.join('\n').toUpperCase();
+              const tags = new Set(['SQL']);
+              if (joined.includes('CROSS APPLY')) tags.add('CROSS APPLY');
+              if (joined.includes('STRING_SPLIT')) tags.add('STRING_SPLIT');
+              if (joined.includes('WINDOW')) tags.add('Window Functions');
+              meta.tags = Array.from(tags);
+            }
+
+            // Description from first problem line
+            const description = (problemLines[0] || '').trim();
+
+            return {
+              meta,
+              description,
+              problem: problemLines.join('\n').trim(),
+              setup: setupLines.join('\n').trim(),
+              solution: solutionLines.join('\n').trim(),
+            };
+          }
+
+          // Generate MD for each SQL
+          const sqlFiles = readAllSqlFiles(ROOT);
+          for (const sqlPath of sqlFiles) {
+            const sqlText = fs.readFileSync(sqlPath, 'utf8');
+            const parsed = parseSqlFile(sqlText);
+
+            const base = path.basename(sqlPath, '.sql');
+            const slug = slugify(base);
+
+            const title = parsed.meta.title || `SQL: ${base}`;
+            const date = parsed.meta.date || nowIST();
+            const tags = parsed.meta.tags;
+
+            const md = `---
+layout: ../../layouts/MarkdownPostLayout.astro
+title: "${title}"
+publishedDate: ${date}
+description: "${parsed.description}"
+author: "Neeraj Kumar"
+image:
+  url: ""
+  alt: ""
+tags: ${JSON.stringify(tags)}
+#hashnodeUrl: ""
+featuredPost: false
+---
+
+## 🚀 Introduction
+
+${parsed.problem || '—'}
+
+---
+
+### ✅ Problem Setup
+
+\`\`\`sql
+${parsed.setup}
+\`\`\`
+
+---
+
+### 🛠️ Solution
+
+\`\`\`sql
+${parsed.solution}
+\`\`\`
+
+`;
+
+            const outPath = path.join(POSTS_DIR, `${slug}.md`);
+            fs.writeFileSync(outPath, md, 'utf8');
+            console.log('Generated:', outPath);
+          }
+          EOF
+
+      - name: Commit & push generated posts to blog
+        run: |
+          cd blog
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/pages/posts/*.md
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: auto-generate MD posts from SQL repo (problem + setup + solution)"
+            git push origin HEAD:main
+          fi
