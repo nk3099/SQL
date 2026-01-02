@@ -3,10 +3,10 @@ name: Publish SQL to Astro Blog
 
 on:
   push:
-    branches: [ master ]          # SQL repo uses master
+    branches: [ master ]        # SQL repo uses master
     paths:
-      - '**/*.sql'                # run when any .sql changes
-  workflow_dispatch: {}           # allow manual trigger for testing
+      - '**/*.sql'              # run on any .sql changes
+  workflow_dispatch: {}         # allow manual trigger
 
 jobs:
   publish:
@@ -29,10 +29,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: nk3099/neeraj-astro-blog
-          token: ${{ secrets.BLOG_REPO_PAT }}   # PAT with 'repo' scope, stored in SQL repo secrets
+          token: ${{ secrets.BLOG_REPO_PAT }}   # PAT with 'repo' scope (secret in SQL repo)
           path: blog
-          fetch-depth: 0                         # important to avoid non-fast-forward push errors
-          ref: main                              # explicitly check out blog main branch
+          fetch-depth: 0
+          ref: main
 
       - name: Ensure posts directory exists
         run: |
@@ -92,6 +92,7 @@ jobs:
                 meta.tags = l.replace(/^\s*--\s*TAGS:\s*/i,'').split(',').map(s=>s.trim()).filter(Boolean);
                 continue;
               }
+
               // Section markers
               if (/^\s*--\s*PROBLEM:/i.test(l))  { section='problem';  continue; }
               if (/^\s*--\s*SETUP:/i.test(l))    { section='setup';    continue; }
@@ -129,3 +130,84 @@ jobs:
               meta.tags = Array.from(tags);
             }
 
+            const description = (problemLines[0] || '').trim();
+
+            return {
+              meta,
+              description,
+              problem: problemLines.join('\n').trim(),
+              setup: setupLines.join('\n').trim(),
+              solution: solutionLines.join('\n').trim(),
+            };
+          }
+
+          const sqlFiles = walk(ROOT);
+          if (sqlFiles.length === 0) console.log('No .sql files found.');
+
+          for (const sqlPath of sqlFiles) {
+            const sqlText = fs.readFileSync(sqlPath, 'utf8');
+            const parsed = parseSqlFile(sqlText);
+            const base = path.basename(sqlPath, '.sql');
+            const slug = slugify(base);
+            const title = parsed.meta.title || `SQL: ${base}`;
+            const date = parsed.meta.date || nowIST();
+            const tags = parsed.meta.tags;
+
+            const md = `---
+layout: ../../layouts/MarkdownPostLayout.astro
+title: "${title}"
+publishedDate: ${date}
+description: "${parsed.description}"
+author: "Neeraj Kumar"
+image:
+  url: ""
+  alt: ""
+tags: ${JSON.stringify(tags)}
+featuredPost: false
+---
+
+## 🚀 Introduction
+
+${parsed.problem || '—'}
+
+---
+
+### ✅ Problem Setup
+
+\`\`\`sql
+${parsed.setup}
+\`\`\`
+
+---
+
+### 🛠️ Solution
+
+\`\`\`sql
+${parsed.solution}
+\`\`\`
+
+`;
+
+            const outPath = path.join(POSTS_DIR, `${slug}.md`);
+            fs.writeFileSync(outPath, md, 'utf8');
+            console.log('Generated:', outPath);
+          }
+          EOF
+
+      - name: Rebase blog main (avoid non-fast-forward)
+        run: |
+          cd blog
+          git pull --rebase origin main || true
+
+      - name: Commit & push generated posts to blog (branch: main)
+        run: |
+          cd blog
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/pages/posts/*.md || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: auto-generate MD posts from SQL repo (problem + setup + solution)"
+            git push origin HEAD:main
+          fi
