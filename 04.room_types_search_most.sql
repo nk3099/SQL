@@ -25,3 +25,5 @@ from airbnb_searches
 CROSS APPLY string_split(filter_room_types,',')
 group by value
 order by no_of_searches desc
+
+
