@@ -50,7 +50,7 @@ inner join deptsalary ds on e.dep_id=ds.dep_id
 group by e.dep_id
 
 --OR-- 
--- using STRING_AGG in MS-SQL-Server / GROUP_CONCAT in MS-SQL-Server
+-- using STRING_AGG in MS-SQL-Server / GROUP_CONCAT in MySQL
 
 with deptsalary as(
 select dep_id,max(salary) as maxi, min(salary) as mini
